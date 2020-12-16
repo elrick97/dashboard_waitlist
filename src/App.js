@@ -33,21 +33,6 @@ import swal from 'sweetalert';
 require('dotenv').config();
 
 const json2csv = require('json2csv');
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-/* var firebaseConfig = {
-  apiKey: "AIzaSyAduGhYR7rw9bqxggsuIKz1gwiF51_egHA",
-  authDomain: "botitc.firebaseapp.com",
-  projectId: "botitc",
-  storageBucket: "botitc.appspot.com",
-  messagingSenderId: "247885071528",
-  appId: "1:247885071528:web:0ad7c4a1dca7ef80cb6e9d",
-  measurementId: "G-1TJJXQLJ86"
-};
-// Initialize Firebase
-Firebase.initializeApp(firebaseConfig);
-
-var db = Firebase.firestore(); */
 
 try {
   Firebase.initializeApp({
@@ -94,6 +79,7 @@ export default function App() {
   const [espera, setEspera] = React.useState(true);
 
   const handleChange = (event, newValue) => {
+    setEspera(!espera);
     setValue(newValue);
   };
 
@@ -185,20 +171,38 @@ export default function App() {
   };
 
   const renderMatriculas = (r, clave) => {
-    return (
-      Object.entries(r).map((d) => {
-        console.log(d[1].done);
-        if (d[1].done === false) {
-          return (
-            <TableCell component="th" scope="row">
-              {d[0]}
-              <Chip size="small" label={d[1].carrera} />
-              {d[1].done ? <Chip style={{ backgroundColor: green[500] }} size="small" label="Atendido" disable deleteIcon={<CheckCircleIcon />} /> : <Chip style={{ backgroundColor: yellow[500] }} size="small" label="En Espera" onClick={() => handleClick(d, clave)} deleteIcon={<AccessTimeIcon />} />}
-            </TableCell>
-          );
-        }
-      })
-    );
+    if (espera) {
+      return (
+        Object.entries(r).map((d) => {
+          console.log(d[1].done);
+          if (d[1].done === false) {
+            return (
+              <TableCell component="th" scope="row">
+                {d[0]}
+                <Chip size="small" label={d[1].carrera} />
+                {d[1].done ? <Chip style={{ backgroundColor: green[500] }} size="small" label="Atendido" disable deleteIcon={<CheckCircleIcon />} /> : <Chip style={{ backgroundColor: yellow[500] }} size="small" label="En Espera" onClick={() => handleClick(d, clave)} deleteIcon={<AccessTimeIcon />} />}
+              </TableCell>
+            );
+          }
+        })
+      );
+    } else {
+      return (
+        Object.entries(r).map((d) => {
+          console.log(d[1].done);
+          if (d[1].done === true) {
+            return (
+              <TableCell component="th" scope="row">
+                {d[0]}
+                <Chip size="small" label={d[1].carrera} />
+                {d[1].done ? <Chip style={{ backgroundColor: green[500] }} size="small" label="Atendido" disable deleteIcon={<CheckCircleIcon />} /> : <Chip style={{ backgroundColor: yellow[500] }} size="small" label="En Espera" onClick={() => handleClick(d, clave)} deleteIcon={<AccessTimeIcon />} />}
+              </TableCell>
+            );
+          }
+        })
+      );
+    }
+
   }
 
   if (data) {
@@ -235,26 +239,28 @@ export default function App() {
             </Tabs>
           </Container>
         </Paper>
-        <TableContainer component={Paper}>
-          <Table className={classes.table} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Clave</TableCell>
+        <Container>
+          <TableContainer component={Paper}>
+            <Table className={classes.table} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Clave</TableCell>
 
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.map((row, i) => (
-                <TableRow key={row.id}>
-                  <TableCell component="th" scope="row">
-                    {claves[i]}
-                  </TableCell>
-                  {renderMatriculas(row, claves[i])}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {data.map((row, i) => (
+                  <TableRow key={row.id}>
+                    <TableCell component="th" scope="row">
+                      {claves[i]}
+                    </TableCell>
+                    {renderMatriculas(row, claves[i])}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Container>
       </div>
     );
   } else {
@@ -283,5 +289,4 @@ export default function App() {
       </div>
     )
   }
-
 }
