@@ -103,6 +103,41 @@ export default function App() {
     fetchData();
   }, []);
 
+  const deleteCollection = async () => {
+    const collectionRef = db.collection('cursos');
+    const query = collectionRef.orderBy('__name__');
+    return new Promise((resolve, reject) => {
+      deleteQueryBatch(query, resolve).catch(reject);
+    });
+  }
+
+  async function deleteQueryBatch(query, resolve) {
+    const snapshot = await query.get();
+
+    const batchSize = snapshot.size;
+    if (batchSize === 0) {
+      // When there are no documents left, we are done
+      resolve();
+      return;
+    }
+
+    // Delete documents in a batch
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+
+    // Recurse on the next process tick, to avoid
+    // exploding the stack.
+    process.nextTick(() => {
+      deleteQueryBatch(db, query, resolve);
+    });
+    window.location.reload();
+
+  }
+
+
   const handleDeleteAll = () => {
     swal({
       title: "Borrar TODA la base de datos",
@@ -113,9 +148,17 @@ export default function App() {
     })
       .then((willDelete) => {
         if (willDelete) {
-          swal("Felicidades ha borrado toda la base de datos y no hay vuelta atras.", {
-            icon: "success",
-          });
+          swal("Contraseña", {
+            content: "input",
+          })
+            .then((value) => {
+              if (value === process.env.REACT_APP_CONTRA) {
+                deleteCollection()
+                swal("Borrado con exito");
+              } else {
+                swal("Contrasea incorrecta");
+              }
+            });
         } else {
           swal("Cancelado. No hay cambios.");
         }
