@@ -90,14 +90,28 @@ export default function App() {
       .then((querySnapshot) => {
         setData(querySnapshot.data);
         querySnapshot.forEach((doc) => {
-          console.log(doc.data());
-          temp.push(doc.data());
+          var tempOrder = [];
+          Object.entries(doc.data()).map((d) => {
+            var obj = {
+              'carrera': d[1].carrera,
+              'date': d[1].date,
+              'done': d[1].done,
+              'matricula': d[0]
+            }
+            tempOrder.push(obj);
+          })
+          tempOrder.sort(function (x, y) {
+            return x.date.seconds - y.date.seconds;
+          })
+          temp.push(tempOrder);
           temp2.push(doc.id);
         });
         setData(temp);
         setClaves(temp2);
       });
   }
+
+
 
   useEffect(() => {
     fetchData();
@@ -177,9 +191,9 @@ export default function App() {
 
 
   const handleClick = (alumno, clave) => {
-    const a = alumno[0]
-    const carrera = alumno[1].carrera
-    const date = alumno[1].date
+    const a = alumno.matricula
+    const carrera = alumno.carrera
+    const date = alumno.date
     swal({
       title: "¿Alumno atendido?",
       text: "¿Seguro que quiere marcar como atendido al alumno?",
@@ -210,20 +224,18 @@ export default function App() {
           swal("Cancelado. No hay cambios.");
         }
       });
-    console.info('You clicked the Chip.');
   };
 
   const renderMatriculas = (r, clave) => {
     if (espera) {
       return (
-        Object.entries(r).map((d) => {
-          console.log(d[1].done);
-          if (d[1].done === false) {
+        r.map((d) => {
+          if (d.done === false) {
             return (
               <TableCell component="th" scope="row">
-                {d[0]}
-                <Chip size="small" label={d[1].carrera} />
-                {d[1].done ? <Chip style={{ backgroundColor: green[500] }} size="small" label="Atendido" disable deleteIcon={<CheckCircleIcon />} /> : <Chip style={{ backgroundColor: yellow[500] }} size="small" label="En Espera" onClick={() => handleClick(d, clave)} deleteIcon={<AccessTimeIcon />} />}
+                {d.matricula}
+                <Chip size="small" label={d.carrera} />
+                <Chip style={{ backgroundColor: yellow[500] }} size="small" label="En Espera" onClick={() => handleClick(d, clave)} deleteIcon={<AccessTimeIcon />} />
               </TableCell>
             );
           }
@@ -231,25 +243,22 @@ export default function App() {
       );
     } else {
       return (
-        Object.entries(r).map((d) => {
-          console.log(d[1].done);
-          if (d[1].done === true) {
+        r.map((d) => {
+          if (d.done === true) {
             return (
               <TableCell component="th" scope="row">
-                {d[0]}
-                <Chip size="small" label={d[1].carrera} />
-                {d[1].done ? <Chip style={{ backgroundColor: green[500] }} size="small" label="Atendido" disable deleteIcon={<CheckCircleIcon />} /> : <Chip style={{ backgroundColor: yellow[500] }} size="small" label="En Espera" onClick={() => handleClick(d, clave)} deleteIcon={<AccessTimeIcon />} />}
+                {d.matricula}
+                <Chip size="small" label={d.carrera} />
+                <Chip style={{ backgroundColor: green[500] }} size="small" label="Atendido" disable deleteIcon={<CheckCircleIcon />} />
               </TableCell>
             );
           }
         })
       );
     }
-
   }
 
   if (data) {
-    console.log(process.env)
     return (
       <div className={classes.root}>
         <AppBar position="static">
@@ -263,7 +272,7 @@ export default function App() {
             <IconButton color="inherit" onClick={() => { handleRefresh() }}>
               <RefreshIcon />
             </IconButton>
-            <Button color="inherit" endIcon={<CloudDownloadIcon />}>Exportar</Button>
+            <Button color="inherit" endIcon={<CloudDownloadIcon onClick={() => { handleExport() }} />}>Exportar</Button>
             <IconButton style={{ color: red[500] }} fontSize="large" onClick={() => { handleDeleteAll() }}>
               <DeleteForeverIcon />
             </IconButton>
